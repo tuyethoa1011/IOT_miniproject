@@ -56,7 +56,7 @@ static const char *TAG = "IOT_MINI_PROJECT";
 //----- LIBRARY INCLUDE -----
 //-----  VARIABLES DECALATION -----
 uint8_t gpio_dht = GPIO_NUM_25;
-char  h_buf[50], t_buf[50], rain_lv_buf[50];
+char  h_buf[20], t_buf[20], rain_lv_buf[20];
 static esp_mqtt_client_handle_t client ;
 static int msg_id;
 //công thức tính lượng mưa: dựa vào mực nước thu được từ cảm biến mưa
@@ -217,8 +217,8 @@ void dht_task(void *pvParameters) //Task dùng để lấy giá trị từ cảm
         if (dht_read_float_data(SENSOR_TYPE, CONFIG_EXAMPLE_DATA_GPIO, &humidity, &temperature) == ESP_OK) {
             //printf("Humidity: %.1f%% Temp: %.1fC\n", humidity, temperature);
 
-            snprintf(h_buf, 50, "Humidity\n%.1f%%", humidity);
-            snprintf(t_buf, 50, "\n\nTemperature\n%.1fC", temperature);
+            snprintf(h_buf, 20, "%.1f%%", humidity);
+            snprintf(t_buf, 20, "%.1fC", temperature);
         }
         else
             printf("Could not read data from sensor\n");
@@ -229,27 +229,31 @@ void dht_task(void *pvParameters) //Task dùng để lấy giá trị từ cảm
     }
 }
 
-void displayoled_sendsv_task(void *pvParameters) //Task hiển thị giá trị đọc được từ cảm biến ra màn hình OLED và gửi lên server data với chu kỳ 10s
+void display_oled_task(void *pvParameters) //Task hiển thị giá trị đọc được từ cảm biến ra màn hình OLED và gửi lên server data với chu kỳ 10s
 {
     ssd1306_init(I2C_MASTER_NUM);
  
     task_ssd1306_display_clear(I2C_MASTER_NUM);
     while(1) //forever loop để chạy task
     {   
-        xSemaphoreTake(sem1, portMAX_DELAY);
+        //xSemaphoreTake(sem1, portMAX_DELAY);
+        task_ssd1306_display_text("Humidity\n",I2C_MASTER_NUM);
         task_ssd1306_display_text(h_buf,I2C_MASTER_NUM);
+     
         //in value do am
+        task_ssd1306_display_text("\n\nTemperature\n",I2C_MASTER_NUM);
         task_ssd1306_display_text(t_buf,I2C_MASTER_NUM);
+        
         //in value nhiet do
         //task_ssd1306_display_text(rain_lv_buf,I2C_MASTER_NUM);
         //in value luong mua
         vTaskDelay(100/portTICK_PERIOD_MS);  
         //xử lý gửi dữ liệu cho server theo chu kỳ 10s 1 lần
         //messy print terminal from the start but then get in stable state after first run
-        xSemaphoreGive(sem1);
+        //xSemaphoreGive(sem1);
         
-        xSemaphoreTake(sem1, portMAX_DELAY);
-        count = 10;
+       // xSemaphoreTake(sem1, portMAX_DELAY);
+        /*count = 10;
         while (count != 0)
         {   
             printf("Sent data in %d\n",count);
@@ -268,21 +272,46 @@ void displayoled_sendsv_task(void *pvParameters) //Task hiển thị giá trị 
             }
             vTaskDelay(1000/portTICK_PERIOD_MS);
         }
-        xSemaphoreGive(sem1);
+        xSemaphoreGive(sem1);*/
     }
     vTaskDelete(NULL);
 }
 
+void sendto_server_task(void *pvParameters)
+{
+    while(1)
+    {
+        if(count == 0) { count = 10; }
+        else if (count != 0)
+        {   
+            printf("Sent data in %d\n",count);
+            --count;
+                
+            if(count == 0) {
+                msg_id = esp_mqtt_client_publish(client, "sensor/humidity",(const char*)h_buf, 0, 1, 0);
+                ESP_LOGI(TAG, "sent publish humidity successful, msg_id=%d", msg_id);
+
+                msg_id = esp_mqtt_client_publish(client, "sensor/temperature",(const char*)t_buf, 0, 1, 0);
+                ESP_LOGI(TAG, "sent publish temperature successful, msg_id=%d", msg_id);
+
+                //msg_id = esp_mqtt_client_publish(client, "sensor/rain_ammount", "data_3", 0, 1, 0);
+                //ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+                //vTaskDelay(10000/portTICK_PERIOD_MS);
+            }
+        }
+        vTaskDelay(1000/portTICK_PERIOD_MS);
+    }
+}
 
 //----- TASKS -----
 void app_main(void)
 {   
     sem1 = xSemaphoreCreateMutex();
-    ESP_ERROR_CHECK( i2c_master_init());
+    ESP_ERROR_CHECK(i2c_master_init());
 
-    xTaskCreate(dht_task, "dht_task_0", configMINIMAL_STACK_SIZE * 3, NULL, 1, NULL);
-    xTaskCreate(displayoled_sendsv_task,"displayoled_sendsv_task_1",1024*2,(void *)0,1, NULL);  
-
+    xTaskCreate(dht_task, "dht_task_0", configMINIMAL_STACK_SIZE * 3, NULL, 2, NULL);
+    xTaskCreate(display_oled_task,"display_oled_task_1",1024*2,(void *)0,2, NULL);  
+    xTaskCreate(sendto_server_task,"sendto_server_task_2",1024*2,(void *)0,1, NULL);  
     mqtt_init();
     ESP_ERROR_CHECK(example_connect());
     mqtt_app_start();
