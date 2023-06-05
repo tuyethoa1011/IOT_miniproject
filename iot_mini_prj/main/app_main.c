@@ -278,13 +278,17 @@ void display_oled_task(void *pvParameters) //Task hiển thị giá trị đọc
 }
 
 void sendto_server_task(void *pvParameters)
-{
+{   
+    mqtt_init();
+    ESP_ERROR_CHECK(example_connect()); //wifi init
+    mqtt_app_start();
+
     while(1)
     {
         if(count == 0) { count = 10; }
         else if (count != 0)
         {   
-            printf("Sent data in %d\n",count);
+            printf("Send data in %d\n",count);
             --count;
                 
             if(count == 0) {
@@ -297,6 +301,8 @@ void sendto_server_task(void *pvParameters)
                 //msg_id = esp_mqtt_client_publish(client, "sensor/rain_ammount", "data_3", 0, 1, 0);
                 //ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
                 //vTaskDelay(10000/portTICK_PERIOD_MS);
+                memset(t_buf,0,sizeof(t_buf));
+                memset(h_buf,0,sizeof(h_buf));
             }
         }
         vTaskDelay(1000/portTICK_PERIOD_MS);
@@ -312,9 +318,7 @@ void app_main(void)
     xTaskCreate(dht_task, "dht_task_0", configMINIMAL_STACK_SIZE * 3, NULL, 2, NULL);
     xTaskCreate(display_oled_task,"display_oled_task_1",1024*2,(void *)0,2, NULL);  
     xTaskCreate(sendto_server_task,"sendto_server_task_2",1024*2,(void *)0,1, NULL);  
-    mqtt_init();
-    ESP_ERROR_CHECK(example_connect());
-    mqtt_app_start();
+   
 }
 
 
