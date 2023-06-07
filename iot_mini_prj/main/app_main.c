@@ -59,6 +59,7 @@ static const char *TAG = "IOT_MINI_PROJECT";
 //-----  VARIABLES DECALATION -----
 uint8_t gpio_dht = GPIO_NUM_25;
 char  h_buf[20], t_buf[20], rain_lv_buf[20];
+char d_h_buf[20], d_t_buf[20], d_rain_lv_buf[20];
 static esp_mqtt_client_handle_t client ;
 static int msg_id;
 //công thức tính lượng mưa: dựa vào mực nước thu được từ cảm biến mưa
@@ -100,14 +101,14 @@ static int msg_id;
 
 static esp_adc_cal_characteristics_t *adc_chars;
 #if CONFIG_IDF_TARGET_ESP32
-static const adc_channel_t channel = ADC2_CHANNEL_9;     //GPIO34 if ADC1, GPIO14 if ADC2
+static const adc_channel_t channel = ADC1_CHANNEL_7;     //GPIO34 if ADC1, GPIO14 if ADC2
 static const adc_bits_width_t width = ADC_WIDTH_BIT_12;
 #elif CONFIG_IDF_TARGET_ESP32S2
-static const adc_channel_t channel = ADC2_CHANNEL_9;     // GPIO7 if ADC1, GPIO17 if ADC2
+static const adc_channel_t channel = ADC1_CHANNEL_7;     // GPIO7 if ADC1, GPIO17 if ADC2
 static const adc_bits_width_t width = ADC_WIDTH_BIT_13;
 #endif
 static const adc_atten_t atten = ADC_ATTEN_DB_11; 
-static const adc_unit_t unit = ADC_UNIT_2;
+static const adc_unit_t unit = ADC_UNIT_1;
 //----- Rain -----
 //----- Cảm biến môi trường define -----
 
@@ -261,17 +262,36 @@ void mqtt_init(void)
 
 SemaphoreHandle_t sem1; //khởi tạo biến semaphore
 
-void dht_task(void *pvParameters) //Task dùng để lấy giá trị từ cảm biến môi trường (độ ẩm, nhiệt độ, lượng mưa,...)
+void sensor_task(void *pvParameters) //Task dùng để lấy giá trị từ cảm biến môi trường (độ ẩm, nhiệt độ, lượng mưa,...)
 {
     static float temperature, humidity;
 #ifdef CONFIG_EXAMPLE_INTERNAL_PULLUP
     gpio_set_pull_mode(gpio_dht, GPIO_PULLUP_ONLY);
 #endif
-    
+     //Check if Two Point or Vref are burned into eFuse
+    check_efuse();
+
+    //Configure ADC
+    if (unit == ADC_UNIT_1) {
+        adc1_config_width(width);
+        adc1_config_channel_atten(channel, atten);
+    } else {
+        adc2_config_channel_atten((adc2_channel_t)channel, atten);
+    }
+
+    //Characterize ADC
+    adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
+    esp_adc_cal_value_t val_type = esp_adc_cal_characterize(unit, atten, width, DEFAULT_VREF, adc_chars);
+    print_char_val_type(val_type);
+
     while (1)
     {   
+        xSemaphoreTake(sem1, portMAX_DELAY);
         if (dht_read_float_data(SENSOR_TYPE, CONFIG_EXAMPLE_DATA_GPIO, &humidity, &temperature) == ESP_OK) {
             //printf("Humidity: %.1f%% Temp: %.1fC\n", humidity, temperature);
+
+            snprintf(d_h_buf, 20, "\n%.1f%%", humidity);
+            snprintf(d_t_buf, 20, "\n\n\n%.1fC", temperature);
 
             snprintf(h_buf, 20, "%.1f%%", humidity);
             snprintf(t_buf, 20, "%.1fC", temperature);
@@ -281,9 +301,40 @@ void dht_task(void *pvParameters) //Task dùng để lấy giá trị từ cảm
 
         // If you read the sensor data too often, it will heat up
         // http://www.kandrsmith.org/RJS/Misc/Hygrometers/dht_sht_how_fast.html
+        
+        //xSemaphoreGive(sem1);
+        
+       // xSemaphoreTake(sem1, portMAX_DELAY);
+        uint32_t adc_reading = 0, rain_value = 0;
+        //Multisampling
+        for (int i = 0; i < NO_OF_SAMPLES; i++) {
+            if (unit == ADC_UNIT_1) {
+                adc_reading += adc1_get_raw((adc1_channel_t)channel);
+            } else {
+                int raw;
+                adc2_get_raw((adc2_channel_t)channel, width, &raw);
+                adc_reading += raw;
+            }
+        }
+        adc_reading /= NO_OF_SAMPLES;
+        //Convert adc_reading to voltage in mV
+        //uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
+        //printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
+        rain_value = abs((adc_reading - 4095))*(100 - 0)/abs((2200-4095))+0; //map value 4095 -> 2200 = 0 -> 100ml mưa
+        sprintf(d_rain_lv_buf,"\n\n\n\n\n%dml",rain_value);
+        sprintf(rain_lv_buf,"%dml",rain_value);
+         xSemaphoreGive(sem1);
         vTaskDelay(100/portTICK_PERIOD_MS);
     }
 }
+
+
+/*
+uint32_t map_rain_value(uint32_t value, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max)
+{
+	return (value - in_min)*(out_max - out_min)/(in_max-in_min)+out_min;
+}*/
+
 
 
 void display_oled_task(void *pvParameters) //Task hiển thị giá trị đọc được từ cảm biến ra màn hình OLED và gửi lên server data với chu kỳ 10s
@@ -292,18 +343,19 @@ void display_oled_task(void *pvParameters) //Task hiển thị giá trị đọc
  
     task_ssd1306_display_clear(I2C_MASTER_NUM);
     while(1) //forever loop để chạy task
-    {   
+    {    
+        task_ssd1306_display_clear(I2C_MASTER_NUM);      
         //xSemaphoreTake(sem1, portMAX_DELAY);
-        task_ssd1306_display_text("Humidity\n",I2C_MASTER_NUM);
-        task_ssd1306_display_text(h_buf,I2C_MASTER_NUM);
+        task_ssd1306_display_text("Humidity",I2C_MASTER_NUM);
+        task_ssd1306_display_text(d_h_buf,I2C_MASTER_NUM);
      
         //in value do am
         task_ssd1306_display_text("\n\nTemperature\n",I2C_MASTER_NUM);
-        task_ssd1306_display_text(t_buf,I2C_MASTER_NUM);
+        task_ssd1306_display_text(d_t_buf,I2C_MASTER_NUM);
         
         //in value nhiet do
-        task_ssd1306_display_text("\nRain Ammount\n",I2C_MASTER_NUM);
-        task_ssd1306_display_text(rain_lv_buf,I2C_MASTER_NUM);
+        task_ssd1306_display_text("\n\n\n\nRain Ammount",I2C_MASTER_NUM);
+        task_ssd1306_display_text(d_rain_lv_buf,I2C_MASTER_NUM);
         //in value luong mua
         vTaskDelay(100/portTICK_PERIOD_MS);  
         //xử lý gửi dữ liệu cho server theo chu kỳ 10s 1 lần
@@ -335,12 +387,10 @@ void display_oled_task(void *pvParameters) //Task hiển thị giá trị đọc
     vTaskDelete(NULL);
 }
 
+
+
 void sendto_server_task(void *pvParameters)
 {   
-    mqtt_init();
-    ESP_ERROR_CHECK(example_connect()); //wifi init
-    mqtt_app_start();
-
     while(1)
     {
         if(count == 0) { count = 10; }
@@ -350,6 +400,7 @@ void sendto_server_task(void *pvParameters)
             --count;
                 
             if(count == 0) {
+                //clear /n in buffer
                 msg_id = esp_mqtt_client_publish(client, "sensor/humidity",(const char*)h_buf, 0, 1, 0);
                 ESP_LOGI(TAG, "sent publish humidity successful, msg_id=%d", msg_id);
 
@@ -364,52 +415,12 @@ void sendto_server_task(void *pvParameters)
                 memset(rain_lv_buf,0,sizeof(rain_lv_buf));
             }
         }
-        vTaskDelay(100/portTICK_PERIOD_MS);
+        vTaskDelay(900/portTICK_PERIOD_MS);
     }
 }
 
 
 
-void rain_analog_read_task (void *pvParameters)
-{
-    //Check if Two Point or Vref are burned into eFuse
-    check_efuse();
-
-    //Configure ADC
-    if (unit == ADC_UNIT_1) {
-        adc1_config_width(width);
-        adc1_config_channel_atten(channel, atten);
-    } else {
-        adc2_config_channel_atten((adc2_channel_t)channel, atten);
-    }
-
-    //Characterize ADC
-    adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
-    esp_adc_cal_value_t val_type = esp_adc_cal_characterize(unit, atten, width, DEFAULT_VREF, adc_chars);
-    print_char_val_type(val_type);
-
-    //Continuously sample ADC1
-    while (1) {
-        uint32_t adc_reading = 0, rain_value = 0;
-        //Multisampling
-        for (int i = 0; i < NO_OF_SAMPLES; i++) {
-            if (unit == ADC_UNIT_1) {
-                adc_reading += adc1_get_raw((adc1_channel_t)channel);
-            } else {
-                int raw;
-                adc2_get_raw((adc2_channel_t)channel, width, &raw);
-                adc_reading += raw;
-            }
-        }
-        adc_reading /= NO_OF_SAMPLES;
-        //Convert adc_reading to voltage in mV
-        //uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
-        //printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
-        rain_value = abs((adc_reading - 4095))*(100 - 0)/abs((2200-4095))+0; //map value 4095 -> 2200 = 0 -> 100ml mưa
-        sprintf(rain_lv_buf,"%dml",rain_value);
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-}
 
 //----- TASKS -----
 void app_main(void)
@@ -417,8 +428,14 @@ void app_main(void)
     sem1 = xSemaphoreCreateMutex();
     ESP_ERROR_CHECK(i2c_master_init());
 
-    xTaskCreate(dht_task, "dht_task_0", configMINIMAL_STACK_SIZE * 3, NULL, 2, NULL);
-    xTaskCreate(rain_analog_read_task, "rain_analog_read_task", configMINIMAL_STACK_SIZE * 3, NULL, 2, NULL);
-    xTaskCreate(display_oled_task,"display_oled_task_2",1024*2,(void *)0,2, NULL);  
-    xTaskCreate(sendto_server_task,"sendto_server_task_3",1024*2,(void *)0,1, NULL); 
+    mqtt_init();
+    ESP_ERROR_CHECK(example_connect()); //wifi init
+    mqtt_app_start();
+
+    xTaskCreate(sensor_task, "sensor_task_0", configMINIMAL_STACK_SIZE * 3, NULL, 2, NULL);
+    xTaskCreate(display_oled_task,"display_oled_task_1",1024*2,(void *)0,3, NULL);  
+    xTaskCreate(sendto_server_task,"sendto_server_task_2",1024*2,(void *)0,3, NULL); 
 }
+
+
+
