@@ -1324,3 +1324,14 @@
 215	2766	7078267573731502	esp-idf/esp32/ld/esp32.project.ld	e6e797cd9e59d40
 2768	6191	7078267633320029	iot_mini_prj.elf	66f7ce78d1566b98
 6192	6486	7078267633320029	.bin_timestamp	12a051669eb00d22
+56	97	7078435266972462	esp-idf/esp_adc_cal/CMakeFiles/__idf_esp_adc_cal.dir/esp_adc_cal_esp32.c.obj	67ed05de1029bcd2
+50	119	7074302149855373	bootloader-prefix/src/bootloader-stamp/bootloader-build	9c54247850d9de58
+50	119	7074302149855373	bootloader/bootloader.elf	9c54247850d9de58
+50	119	7074302149855373	bootloader/bootloader.bin	9c54247850d9de58
+50	119	7074302149855373	bootloader/bootloader.map	9c54247850d9de58
+97	162	7078435267607044	esp-idf/esp_adc_cal/libesp_adc_cal.a	58cb03b703afba76
+61	400	7078435269902973	esp-idf/main/CMakeFiles/__idf_main.dir/app_main.c.obj	fda3320d918defbe
+400	449	7078435270484857	esp-idf/main/libmain.a	3636041dbc688203
+449	3126	7078435270484857	esp-idf/esp32/ld/esp32.project.ld	e6e797cd9e59d40
+3127	7068	7078435336498163	iot_mini_prj.elf	66f7ce78d1566b98
+7068	7406	7078435336498163	.bin_timestamp	12a051669eb00d22

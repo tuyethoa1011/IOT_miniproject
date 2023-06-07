@@ -4,7 +4,7 @@
   ***************************************************************************************************************
   File:	      app_main.c
   Modifier:   Ngo Le Tuyet Hoa
-  Updated:    4th JUNE 2023
+  Updated:    7th JUNE 2023
   ***************************************************************************************************************
   Copyright (C) 2023 https://github.com/tuyethoa1011
   This is a free software under the GNU license, you can redistribute it and/or modify it under the terms
@@ -25,11 +25,13 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include "driver/adc.h"
+#include "esp_adc_cal.h"
 //------I2C LCD lib -----
 #include "esp_log.h"
 #include "driver/i2c.h"
 #include "ssd1306.h"
-//------Sensor lib (DHT22, cảm biến lượng mưa) -----
+//------Sensor lib (DHT22) -----
 #include "dht.h"
 //----- WiFi (MQTT) lib -----
 #include "esp_wifi.h"
@@ -81,6 +83,7 @@ static int msg_id;
 #define READ_BIT I2C_MASTER_READ                /*!< I2C master read */
 //----- I2C LCD define -----
 //----- Cảm biến môi trường define -----
+//----- Humidity, Temp (DHT) -----
 #if defined(CONFIG_EXAMPLE_TYPE_DHT11)
 #define SENSOR_TYPE DHT_TYPE_DHT11
 #endif
@@ -90,12 +93,65 @@ static int msg_id;
 #if defined(CONFIG_EXAMPLE_TYPE_SI7021)
 #define SENSOR_TYPE DHT_TYPE_SI7021
 #endif
+//----- Humidity, Temp (DHT) -----
+//----- Rain -----
+#define DEFAULT_VREF    1100        //Use adc2_vref_to_gpio() to obtain a better estimate
+#define NO_OF_SAMPLES   64          //Multisampling
 
+static esp_adc_cal_characteristics_t *adc_chars;
+#if CONFIG_IDF_TARGET_ESP32
+static const adc_channel_t channel = ADC2_CHANNEL_9;     //GPIO34 if ADC1, GPIO14 if ADC2
+static const adc_bits_width_t width = ADC_WIDTH_BIT_12;
+#elif CONFIG_IDF_TARGET_ESP32S2
+static const adc_channel_t channel = ADC2_CHANNEL_9;     // GPIO7 if ADC1, GPIO17 if ADC2
+static const adc_bits_width_t width = ADC_WIDTH_BIT_13;
+#endif
+static const adc_atten_t atten = ADC_ATTEN_DB_11; 
+static const adc_unit_t unit = ADC_UNIT_2;
+//----- Rain -----
 //----- Cảm biến môi trường define -----
 
 //----- DEFINITIONS -----
 
 //----- FUNCTIONS -----
+//----- ANALOG READ essential functions -----
+static void check_efuse(void)
+{
+#if CONFIG_IDF_TARGET_ESP32
+    //Check if TP is burned into eFuse
+    if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP) == ESP_OK) {
+        printf("eFuse Two Point: Supported\n");
+    } else {
+        printf("eFuse Two Point: NOT supported\n");
+    }
+    //Check Vref is burned into eFuse
+    if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_VREF) == ESP_OK) {
+        printf("eFuse Vref: Supported\n");
+    } else {
+        printf("eFuse Vref: NOT supported\n");
+    }
+#elif CONFIG_IDF_TARGET_ESP32S2
+    if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP) == ESP_OK) {
+        printf("eFuse Two Point: Supported\n");
+    } else {
+        printf("Cannot retrieve eFuse Two Point calibration values. Default calibration values will be used.\n");
+    }
+#else
+#error "This example is configured for ESP32/ESP32S2."
+#endif
+}
+
+static void print_char_val_type(esp_adc_cal_value_t val_type)
+{
+    if (val_type == ESP_ADC_CAL_VAL_EFUSE_TP) {
+        printf("Characterized using Two Point Value\n");
+    } else if (val_type == ESP_ADC_CAL_VAL_EFUSE_VREF) {
+        printf("Characterized using eFuse Vref\n");
+    } else {
+        printf("Characterized using Default Vref\n");
+    }
+}
+//----- ANALOG READ essential functions -----
 //----- I2C LCD essential function -----
 /**
  * @brief i2c master initialization
@@ -229,6 +285,7 @@ void dht_task(void *pvParameters) //Task dùng để lấy giá trị từ cảm
     }
 }
 
+
 void display_oled_task(void *pvParameters) //Task hiển thị giá trị đọc được từ cảm biến ra màn hình OLED và gửi lên server data với chu kỳ 10s
 {
     ssd1306_init(I2C_MASTER_NUM);
@@ -245,7 +302,8 @@ void display_oled_task(void *pvParameters) //Task hiển thị giá trị đọc
         task_ssd1306_display_text(t_buf,I2C_MASTER_NUM);
         
         //in value nhiet do
-        //task_ssd1306_display_text(rain_lv_buf,I2C_MASTER_NUM);
+        task_ssd1306_display_text("\nRain Ammount\n",I2C_MASTER_NUM);
+        task_ssd1306_display_text(rain_lv_buf,I2C_MASTER_NUM);
         //in value luong mua
         vTaskDelay(100/portTICK_PERIOD_MS);  
         //xử lý gửi dữ liệu cho server theo chu kỳ 10s 1 lần
@@ -298,14 +356,58 @@ void sendto_server_task(void *pvParameters)
                 msg_id = esp_mqtt_client_publish(client, "sensor/temperature",(const char*)t_buf, 0, 1, 0);
                 ESP_LOGI(TAG, "sent publish temperature successful, msg_id=%d", msg_id);
 
-                //msg_id = esp_mqtt_client_publish(client, "sensor/rain_ammount", "data_3", 0, 1, 0);
-                //ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
-                //vTaskDelay(10000/portTICK_PERIOD_MS);
+                msg_id = esp_mqtt_client_publish(client, "sensor/rain_ammount",(const char*)rain_lv_buf, 0, 1, 0);
+                ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+                
                 memset(t_buf,0,sizeof(t_buf));
                 memset(h_buf,0,sizeof(h_buf));
+                memset(rain_lv_buf,0,sizeof(rain_lv_buf));
             }
         }
-        vTaskDelay(1000/portTICK_PERIOD_MS);
+        vTaskDelay(100/portTICK_PERIOD_MS);
+    }
+}
+
+
+
+void rain_analog_read_task (void *pvParameters)
+{
+    //Check if Two Point or Vref are burned into eFuse
+    check_efuse();
+
+    //Configure ADC
+    if (unit == ADC_UNIT_1) {
+        adc1_config_width(width);
+        adc1_config_channel_atten(channel, atten);
+    } else {
+        adc2_config_channel_atten((adc2_channel_t)channel, atten);
+    }
+
+    //Characterize ADC
+    adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
+    esp_adc_cal_value_t val_type = esp_adc_cal_characterize(unit, atten, width, DEFAULT_VREF, adc_chars);
+    print_char_val_type(val_type);
+
+    //Continuously sample ADC1
+    while (1) {
+        uint32_t adc_reading = 0, rain_value = 0;
+        //Multisampling
+        for (int i = 0; i < NO_OF_SAMPLES; i++) {
+            if (unit == ADC_UNIT_1) {
+                adc_reading += adc1_get_raw((adc1_channel_t)channel);
+            } else {
+                int raw;
+                adc2_get_raw((adc2_channel_t)channel, width, &raw);
+                adc_reading += raw;
+            }
+        }
+        adc_reading /= NO_OF_SAMPLES;
+        //Convert adc_reading to voltage in mV
+        //uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
+        //printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
+        rain_value = abs((adc_reading - 4095))*(100 - 0)/abs((2200-4095))+0; //map value 4095 -> 2200 = 0 -> 100ml mưa
+        sprintf(rain_lv_buf,"%dml",rain_value);
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
@@ -316,10 +418,7 @@ void app_main(void)
     ESP_ERROR_CHECK(i2c_master_init());
 
     xTaskCreate(dht_task, "dht_task_0", configMINIMAL_STACK_SIZE * 3, NULL, 2, NULL);
-    xTaskCreate(display_oled_task,"display_oled_task_1",1024*2,(void *)0,2, NULL);  
-    xTaskCreate(sendto_server_task,"sendto_server_task_2",1024*2,(void *)0,1, NULL);  
-   
+    xTaskCreate(rain_analog_read_task, "rain_analog_read_task", configMINIMAL_STACK_SIZE * 3, NULL, 2, NULL);
+    xTaskCreate(display_oled_task,"display_oled_task_2",1024*2,(void *)0,2, NULL);  
+    xTaskCreate(sendto_server_task,"sendto_server_task_3",1024*2,(void *)0,1, NULL); 
 }
-
-
-
