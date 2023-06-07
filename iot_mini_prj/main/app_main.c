@@ -261,7 +261,7 @@ void display_oled_task(void *pvParameters) //Task hiển thị giá trị đọc
                 
             if(count == 0) {
                 msg_id = esp_mqtt_client_publish(client, "sensor/humidity",(const char*)h_buf, 0, 1, 0);
-                ESP_LOGI(TAG, "sent publish humidity successful, msg_id=%d", msg_id);
+                ESP_LOGI(TAG, "sent publ ish humidity successful, msg_id=%d", msg_id);
 
                 msg_id = esp_mqtt_client_publish(client, "sensor/temperature",(const char*)t_buf, 0, 1, 0);
                 ESP_LOGI(TAG, "sent publish temperature successful, msg_id=%d", msg_id);

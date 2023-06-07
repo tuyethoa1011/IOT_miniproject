@@ -19,7 +19,9 @@
         "esp_bt.h": "c",
         "*.inc": "c",
         "chrono": "c",
-        "algorithm": "c"
+        "algorithm": "c",
+        "semphr.h": "c",
+        "esp_adc_cal.h": "c"
     },
     "idf.flashType": "UART"
 }
