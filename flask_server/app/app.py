@@ -1,9 +1,8 @@
-from flask import Flask, render_template, url_for, request,redirect,jsonify
+from flask import Flask, render_template
 from flask_mqtt import Mqtt
 import datetime
 from bson import objectid
 from pymongo import MongoClient
-import os
 # get current time
 time_buf = datetime.datetime.now() #timestamp
 
@@ -44,6 +43,9 @@ client = MongoClient("mongodb://localhost:27017")
 db = client.sensors_db #select the database
 todos = db.sensors #select collectionname
 
+global humidity_payload
+global temperature_payload
+global rain_payload 
 #Dict object
 humidity_payload =  str(list(todos.find({"topic": topic_1}).sort([('timestamp', -1)]).limit(1))).split(',') #dữ liệu khởi tạo nên là dữ liệu cuối cùng được nhận trong database
 humidity_payload = humidity_payload[2].split(":")
@@ -62,17 +64,14 @@ rain_payload = rain_payload[1].replace("'","")
 def handle_mqtt_message(client, userdata, message):
     if message.topic == topic_1:
       if message.payload.decode() == humidity_payload:
-        global humidity_payload
         humidity_payload = str(message.payload.decode())
         todos.insert_one({'topic': message.topic, 'value': message.payload.decode(),'timestamp':time_buf.strftime("%Y-%m-%d %H:%M:%S")})
     elif message.topic == topic_2:
       if message.payload.decode() == temperature_payload:
-        global temperature_payload
         temperature_payload = str(message.payload.decode())
         todos.insert_one({'topic': message.topic, 'value': message.payload.decode(),'timestamp':time_buf.strftime("%Y-%m-%d %H:%M:%S")})
     elif message.topic == topic_3:
       if message.payload.decode() == rain_payload:
-        global rain_payload 
         rain_payload = str(message.payload.decode())
         todos.insert_one({'topic': message.topic, 'value': message.payload.decode(),'timestamp':time_buf.strftime("%Y-%m-%d %H:%M:%S")})   
     data = dict (
