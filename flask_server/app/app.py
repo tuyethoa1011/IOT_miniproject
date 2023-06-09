@@ -61,19 +61,25 @@ rain_payload = rain_payload[1].replace("'","")
 @mqtt_client.on_message() #xử lý sự kiện khi nhận được dữ liệu từ broker
 def handle_mqtt_message(client, userdata, message):
     if message.topic == topic_1:
-      global humidity_payload
-      humidity_payload = str(message.payload.decode())
-    if message.topic == topic_2:
-      global temperature_payload
-      temperature_payload = str(message.payload.decode())
-    if message.topic == topic_3:
-      global rain_payload 
-      rain_payload = str(message.payload.decode())
+      if message.payload.decode() == humidity_payload:
+        global humidity_payload
+        humidity_payload = str(message.payload.decode())
+        todos.insert_one({'topic': message.topic, 'value': message.payload.decode(),'timestamp':time_buf.strftime("%Y-%m-%d %H:%M:%S")})
+    elif message.topic == topic_2:
+      if message.payload.decode() == temperature_payload:
+        global temperature_payload
+        temperature_payload = str(message.payload.decode())
+        todos.insert_one({'topic': message.topic, 'value': message.payload.decode(),'timestamp':time_buf.strftime("%Y-%m-%d %H:%M:%S")})
+    elif message.topic == topic_3:
+      if message.payload.decode() == rain_payload:
+        global rain_payload 
+        rain_payload = str(message.payload.decode())
+        todos.insert_one({'topic': message.topic, 'value': message.payload.decode(),'timestamp':time_buf.strftime("%Y-%m-%d %H:%M:%S")})   
     data = dict (
         topic=message.topic,
         payload=message.payload.decode()
     )
-    todos.insert_one({'topic': message.topic, 'value': message.payload.decode(),'timestamp':time_buf.strftime("%Y-%m-%d %H:%M:%S")})
+    #todos.insert_one({'topic': message.topic, 'value': message.payload.decode(),'timestamp':time_buf.strftime("%Y-%m-%d %H:%M:%S")})
     print('Received message on topic: {topic} with payload: {payload}'.format(**data))
         
 @app.route('/')
