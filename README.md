@@ -21,13 +21,15 @@ Xây dựng web-app cho phép truy cập local (2đ) (DONE)
 
 Hiển thị dữ liệu để người dùng xem
   - Hiển thị dạng số đơn giản
-    - Người dùng tự bấm refresh để xem dữ liệu mới (1đ) (DONE)
-    - Web tự refresh khi có dữ liệu mới (1.5đ) (Progress)
-    - Web tự cập nhật dữ liệu mà không cần refresh (2đ)
+    - Người dùng tự bấm refresh để xem dữ liệu mới (1đ) 
+    - Web tự refresh khi có dữ liệu mới (1.5đ) 
+    - Web tự cập nhật dữ liệu mà không cần refresh (2đ) (DONE)
   - Hiển thị dạng đồ thị
     - Người dụng tự bấm refresh để xem dữ liệu mới (1.5đ)
     - Web tự refresh khi có dữ liệu mới (2đ)
-    - Web tự cập nhật dữ liệu mà không cần refresh (2.5đ)
+    - Web tự cập nhật dữ liệu mà không cần refresh (2.5đ) (PROGRESS - Near future if having more time)
 Thiết kế website đẹp (Cộng 1đ Bonus)
+
+Điểm hiện tại: 10.5/12
 
 Mục tiêu: Giành được 12 điểm từ anh Lộc **FIRE**
