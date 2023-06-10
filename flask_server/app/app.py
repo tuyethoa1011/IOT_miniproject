@@ -1,8 +1,12 @@
-from flask import Flask, render_template
+from flask import Flask, render_template,url_for,request,redirect,make_response
+import json
 from flask_mqtt import Mqtt
+from time import time
 import datetime
 from bson import objectid
 from pymongo import MongoClient
+from random import random
+
 # get current time
 time_buf = datetime.datetime.now() #timestamp
 
@@ -43,13 +47,11 @@ client = MongoClient("mongodb://localhost:27017")
 db = client.sensors_db #select the database
 todos = db.sensors #select collectionname
 
-global humidity_payload
-global temperature_payload
-global rain_payload 
 #Dict object
 humidity_payload =  str(list(todos.find({"topic": topic_1}).sort([('timestamp', -1)]).limit(1))).split(',') #dữ liệu khởi tạo nên là dữ liệu cuối cùng được nhận trong database
 humidity_payload = humidity_payload[2].split(":")
 humidity_payload = humidity_payload [1].replace("'","")
+
 
 temperature_payload = str(list(todos.find({"topic": topic_2}).sort([('timestamp', -1)]).limit(1))).split(',')
 temperature_payload = temperature_payload[2].split(":")
@@ -62,28 +64,48 @@ rain_payload = rain_payload[1].replace("'","")
 
 @mqtt_client.on_message() #xử lý sự kiện khi nhận được dữ liệu từ broker
 def handle_mqtt_message(client, userdata, message):
-    if message.topic == topic_1:
-      if message.payload.decode() == humidity_payload:
-        humidity_payload = str(message.payload.decode())
+    if message.topic == topic_1:     
+        global humidity_payload
+        humidity_payload = message.payload.decode()
         todos.insert_one({'topic': message.topic, 'value': message.payload.decode(),'timestamp':time_buf.strftime("%Y-%m-%d %H:%M:%S")})
     elif message.topic == topic_2:
-      if message.payload.decode() == temperature_payload:
-        temperature_payload = str(message.payload.decode())
+        global temperature_payload
+        temperature_payload = message.payload.decode()
         todos.insert_one({'topic': message.topic, 'value': message.payload.decode(),'timestamp':time_buf.strftime("%Y-%m-%d %H:%M:%S")})
     elif message.topic == topic_3:
-      if message.payload.decode() == rain_payload:
-        rain_payload = str(message.payload.decode())
-        todos.insert_one({'topic': message.topic, 'value': message.payload.decode(),'timestamp':time_buf.strftime("%Y-%m-%d %H:%M:%S")})   
+        global rain_payload 
+        rain_payload = message.payload.decode()
+        todos.insert_one({'topic': message.topic, 'value': message.payload.decode(),'timestamp':time_buf.strftime("%Y-%m-%d %H:%M:%S")})
     data = dict (
         topic=message.topic,
         payload=message.payload.decode()
-    )
+    ) 
     #todos.insert_one({'topic': message.topic, 'value': message.payload.decode(),'timestamp':time_buf.strftime("%Y-%m-%d %H:%M:%S")})
     print('Received message on topic: {topic} with payload: {payload}'.format(**data))
         
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/data', methods=["GET", "POST"]) #xử lý gửi data cho template xử lý hiển thị đồ thị live load
+def data():
+    # Data Format
+    # [TIME, Temperature, Humidity, Rain]
+    Temperature = int(float(temperature_payload.replace("C","")))
+    print(Temperature)
+    Humidity = int(float(humidity_payload).replace("%",""))
+    print(Humidity)
+    Rain = int(float(rain_payload).replace("ml",""))
+
+    data = [time() * 100, Temperature, Humidity,Rain]
+
+    response = make_response(json.dumps(data))
+
+    response.content_type = 'application/json'
+
+    return response
+
 
 @app.get("/update_humid")
 def update_humid():
@@ -98,14 +120,12 @@ def update_temperature():
 @app.get("/update_rain")
 def update_rain():
    rain = str(rain_payload)
-   print(rain)
    return rain
 
 
 if __name__ == '__main__':
-    app.run(host="192.168.1.72", port=5000, debug=True, threaded=False)
+    app.run(host="192.168.1.73", port=5000, debug=True, threaded=False)
     #socketio.run(app, host=local_ip, port=5000, use_reloader=False, debug=False)
-    
 
 
 
