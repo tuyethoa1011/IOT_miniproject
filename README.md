@@ -27,9 +27,7 @@ Hiển thị dữ liệu để người dùng xem
   - Hiển thị dạng đồ thị
     - Người dụng tự bấm refresh để xem dữ liệu mới (1.5đ)
     - Web tự refresh khi có dữ liệu mới (2đ)
-    - Web tự cập nhật dữ liệu mà không cần refresh (2.5đ) (PROGRESS - Near future if having more time)
+    - Web tự cập nhật dữ liệu mà không cần refresh (2.5đ) (DONE)
 Thiết kế website đẹp (Cộng 1đ Bonus)
 
-Điểm hiện tại: 10.5/12
-
-Mục tiêu: Giành được 12 điểm từ anh Lộc **FIRE**
+Điểm hiện tại: 13/14 (Tính cả hiển thị dạng số và hiển thị dạng đồ thị)
