@@ -36,3 +36,4 @@ Vấn đề hiện tại:
 - Thời gian chạy cập nhật đồ thị Live không đúng với múi giờ Vietnam.
 - Code còn khá lộn xộn chưa comment.
 - Chưa code Front end.
+- Cần thiết lập cluster MongoDB để làm plan B cho việc truy cập CSDL.
