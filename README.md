@@ -31,3 +31,8 @@ Hiển thị dữ liệu để người dùng xem
 Thiết kế website đẹp (Cộng 1đ Bonus)
 
 Điểm hiện tại: 13/14 (Tính cả hiển thị dạng số và hiển thị dạng đồ thị)
+
+Vấn đề hiện tại:
+- Thời gian chạy cập nhật đồ thị Live không đúng với múi giờ Vietnam.
+- Code còn khá lộn xộn chưa comment.
+- Chưa code Front end.
