@@ -3,15 +3,15 @@
 <head>
     <title>IOT Webpage</title>
     <!--meta http-equiv="refresh" content="2"--> <!--Phương pháp reset webpage-->
-
    <!-- Bootstraps Java Scipts Links -->
    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
-
-
+   <!--CSS links-->
+   <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> <!--CSS lib support responsive web-->
+    <link rel = "stylesheet" href = "static/css/styles.css">
    <!-- JQuery links  -->
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -22,71 +22,145 @@
    <script src="http://code.highcharts.com/modules/exporting.js"></script>
   </head>
 <body>
-    <h1>ESP32 Weather Dashboard</h1>
-    <!--HIỂN THỊ SỐ BEGIN-->
-    <div class = "data">
-      Độ ẩm: <span id = "h_output"></span> <br>
-      Nhiệt độ: <span id = "t_output"></span> <br>
-      Lượng mưa: <span id = "r_output"></span> <br> 
+    <div class="w3-container w3-green">
+        <h1>ESP32 Weather Forecast</h1>
+        <p>"Live your beliefs and you can turn the world around" - Henry David Thoreau</p>
     </div>
-    <!--HIỂN THỊ SỐ END-->
-    <!--HIỂN THỊ ĐỒ THỊ BEGIN-->
-    <br> <br>
-  <div>
-  <div class="container-fluid">
-      <!-- Example row of columns -->
-      <div class="row">
-          <div class="container-fluid" id="data-temperature">
-
-          </div>
-      </div>
-  </div>
-  <br>
-  <br>
-  <br>
-
-
-
-  <div class="container-fluid">
-      <!-- Example row of columns -->
-      <div class="row">
-          <div class="container-fluid" id="data-humidity">
-
-          </div>
-      </div>
-  </div>
-
-  <br>
-  <br>
-  <br>
-
-
-  <div class="container-fluid">
-    <!-- Example row of columns -->
-    <div class="row">
-        <div class="container-fluid" id="data-rain">
-
+    <!--HIỂN THỊ SỐ BEGIN-->
+    <div class = "w3-row-padding" class = "data">
+        <div class = "w3-third">
+            <div class = "w3-card" style = "width: 100%;">
+                <h2 style = "text-align: center;">Humidity</h2> 
+                <img src = "static/img/water-drop.png" class = "center_img">
+                <div id = "h_output" style = "text-align: center;font-size: 20px;"></div>
+            </div>
+        </div>
+        <div class = "w3-third">
+            <div class = "w3-card" style = "width: 100%;">
+                <h2 style = "text-align: center;">Temperature</h2> 
+                <img src = "static/img/thermometer.png" class = "center_img">
+                <div id = "t_output" style = "text-align: center; font-size: 20px;"></div>
+            </div>
+        </div>
+        <div class = "w3-third">
+            <div class = "w3-card" style = "width: 100%">
+                <h2 style = "text-align: center;">Rain ammount</h2>
+                <img src = "static/img/storm.png" class = "center_img">
+                <div id = "r_output" style = "text-align: center;font-size: 20px;"></div> 
+            </div>
         </div>
     </div>
-  </div>
+      <!--HIỂN THỊ SỐ END-->
+    
+    <!--HIỂN THỊ ĐỒ THỊ BEGIN-->
+    <br> <br>
+    <div>
+        <div class="container-fluid">
+        <!-- Example row of columns -->
+        <div class="row">
+            <div class="container-fluid" id="data-temperature">
+
+            </div>
+        </div>
+        </div>
+        <br>
+        <br>
+        <br>
+
+        <div class="container-fluid">
+        <!-- Example row of columns -->
+            <div class="row">
+                <div class="container-fluid" id="data-humidity">
+
+                </div>
+            </div>
+        </div>
+        <br>
+        <br>
+        <br>
+
+        <div class="container-fluid">
+            <!-- Example row of columns -->
+            <div class="row">
+                <div class="container-fluid" id="data-rain">
+
+                </div>
+            </div>
+        </div>
 
 
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
+    </div>
 
     <!--HIỂN THỊ ĐỒ THỊ END-->
-   
+    <footer class="w3-container w3-black"> <!--đưa vào div chung là được-->
+        <div class="footer-container">
+            <div class="footer-about-us-vs-receive-tour footer-item">
+                <div class="footer-item__about-us">
+                    <h3 class="footer-item__header">
+                        About Us
+                    </h3>
+                    <img src="static/img/uit_icon.png" style = "width: 15%;">
+                    <img src = "static/img/ce_icon.png" style = "width: 15%;">
+                    <p><a href="">Click here for more information</a></p>
+                </div>
+                <br>
+                <div class="footer-item__feedback">
+                    <h3 class="footer-item__header">
+                        Give Feedback
+                    </h3>     
+                    <p>
+                        <span>Click on this tiny star to rate us</span>
+                        <a href="">
+                        <img src = "./static/img/star.png" style = "width: 5%;"> 
+                        </a>
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="footer-contact footer-item">
+                <h3 class="footer-item__header">Contact Us</h3>
+
+                <div class="footer-contact__phone">
+                    <p><img src="./static/img/icons8_phone_48px.png" alt="">+84 123456789</p>
+                </div>
+
+                <div class="footer-contact__email">
+                    <p><img src="./static/img/icons8_envelope_48px.png" alt="">info@gmail.com</p>
+                </div>
+
+
+                <h3 class="footer-item__header">Social Networks</h3>
+                <div class="footer-contact__social-media">
+                    <a href="https://www.youtube.com/channel/UCfpQJHmZoB6UVRgTKaTzkYA">
+                        <img src="./static/img/youtube.png" alt="" class="social-media-icon">
+                    </a>
+                    <a href="https://www.facebook.com/tuyethoa1011/">
+                        <img src="./static/img/icons8_facebook_48px.png" alt="" class="social-media-icon">
+                    </a>
+                    <a href="">
+                        <img src="./static/img/icons8_instagram_48px.png" alt="" class="social-media-icon">
+                    </a>
+                    <a href="">
+                        <img src="./static/img/icons8_linkedin_48px.png" alt="" class="social-media-icon">
+                    </a>
+                    <a href="">
+                        <img src="./static/img/icons8_twitter_squared_48px.png" alt="" class="social-media-icon">
+                    </a>
+                </div>
+            </div>   
+        </div>
+        <hr style="border-width: 0.5px; color: #ccc">
+
+        <div class="copy-right">
+            © 2023 Copyright:
+            <a class="text-white" href="">UIT_CE_MTCL2020.1</a>
+        </div>
+    </footer>
+
+    
+    
+    <!--Script xử lý vẽ biểu đồ-->
     <script>
       var chartTemperatue;
       var chartHumidity;
@@ -247,8 +321,9 @@
           // --------------Chart 3 Ends - -----------------
 
       });
-  </script>
-  <script>
+    </script>
+    <!--Script xử lý hiển thị giá trị load value bằng số-->
+    <script>
       function update(){
     $.get("/update_humid", function(data){
                 $("#h_output").html(data)
@@ -266,6 +341,6 @@
   var intervalId = setInterval(function() {
             update()
   }, 100);
-  </script>
+    </script>
 </body>
 </html>

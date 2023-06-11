@@ -1,47 +1,105 @@
-*
+
+.center_img
 {
-    margin: 0;
-    padding: 0;
+  width: 14%; padding: 2px;margin-left:auto;margin-right: auto;display: block;
 }
 
-#container
-{
-    width: 950px;
-    margin: 0 auto;
+.copy-right {
+  text-align: center;
+  color: #aaa;
+  padding-bottom: 24px;
+  font-size: 13px;
 }
 
-#header
-{
-    background-color: green;
-    color: white;
-    margin-bottom: 10px;
-    padding: 10px;
+.copy-right a {
+  text-decoration: none;
 }
 
-.clr
-{
-    clear: both;
+
+/* BEGIN: Footer */
+.footer-container {
+  display: flex;
+  padding: 60px;
+  height: auto;
 }
 
-#left{
-    float: left;
-    width: 200px;
-    background: #ff9900;
-    padding: 10px;
-    min-height: 450px;
+.footer-item {
+  padding: 20px 40px;
+  /* width: 33%; */
+  text-align: justify;
 }
 
-#right {
-    float: right;
-    width: 700px;
-    background: #cccccc;
-    padding: 10px;
-    min-height: 450px;
+.footer-item__header {
+  color: #fff;
+  padding-bottom: 4px;
 }
 
-#footer
-{
-    background: green;
-    margin-top: 10px;
-    padding: 10px;
+.footer-about-us-vs-receive-tour {
+  flex: 2;
 }
+
+.footer-item__about-us {
+  color: #ccc;
+}
+
+.footer-item__about-us p {
+  padding-top: 16px;
+}
+
+.footer-item__about-us p a {
+  color: bisque;
+}
+
+.footer-item__feedback {
+  color: #ccc;
+}
+
+.footer-contact {
+  flex: 2;
+}
+
+.footer-contact__phone {
+  padding-top: 30px;
+}
+
+.footer-contact p img {
+  width: 5%;
+  padding-right: 12px;
+}
+
+.footer-contact p {
+  font-size: 16px;
+  color: #fff;
+}
+
+.footer-contact div {
+  padding-top: 30px;
+}
+
+.footer-contact__email {
+  padding-bottom: 30px;
+}
+
+.footer-contact__social-media a {
+  text-decoration: none;
+}
+
+.social-media-icon {
+  padding-right: 10px;
+  width: 7%;
+}
+
+.footer-top-tour-img {
+  flex: 3;
+}
+
+.footer-top-tour-img__img-container .tour-image {
+  width: 45%;
+  padding-right: 16px;
+  height: 130px;
+}
+
+.footer-top-tour-img__img-container-row {
+  padding-top: 28px;
+}
+
