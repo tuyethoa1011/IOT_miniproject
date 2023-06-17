@@ -1,0 +1,59 @@
+footer comment src:
+<!--div class="footer-container">
+            <div class="footer-about-us-vs-receive-tour footer-item">
+                <div class="footer-item__about-us">
+                    <h3 class="footer-item__header">
+                        About Us
+                    </h3>
+                    <img src="static/img/uit_icon.png" style = "width: 15%;">
+                    <img src = "static/img/ce_icon.png" style = "width: 15%;">
+                    <p><a href="">Click here for more information</a></p>
+                </div>
+                <br>
+                <div class="footer-item__feedback">
+                    <h3 class="footer-item__header">
+                        Give Feedback
+                    </h3>     
+                    <p>
+                        <span>Click on this tiny star to rate us</span>
+                        <a href="">
+                        <img src = "./static/img/star.png" style = "width: 5%;"> 
+                        </a>
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="footer-contact footer-item">
+                <h3 class="footer-item__header">Contact Us</h3>
+
+                <div class="footer-contact__phone">
+                    <p><img src="./static/img/icons8_phone_48px.png" alt="">+84 123456789</p>
+                </div>
+
+                <div class="footer-contact__email">
+                    <p><img src="./static/img/icons8_envelope_48px.png" alt="">info@gmail.com</p>
+                </div>
+
+
+                <h3 class="footer-item__header">Social Networks</h3>
+                <div class="footer-contact__social-media">
+                    <a href="https://www.youtube.com/channel/UCfpQJHmZoB6UVRgTKaTzkYA">
+                        <img src="./static/img/youtube.png" alt="" class="social-media-icon">
+                    </a>
+                    <a href="https://www.facebook.com/tuyethoa1011/">
+                        <img src="./static/img/icons8_facebook_48px.png" alt="" class="social-media-icon">
+                    </a>
+                    <a href="">
+                        <img src="./static/img/icons8_instagram_48px.png" alt="" class="social-media-icon">
+                    </a>
+                    <a href="">
+                        <img src="./static/img/icons8_linkedin_48px.png" alt="" class="social-media-icon">
+                    </a>
+                    <a href="">
+                        <img src="./static/img/icons8_twitter_squared_48px.png" alt="" class="social-media-icon">
+                    </a>
+                </div>
+            </div>   
+        </div>
+        <hr style="border-width: 0.5px; color: #ccc"-->

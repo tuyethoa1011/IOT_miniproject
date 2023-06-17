@@ -92,13 +92,11 @@ def index():
 def data():
     # Data Format
     # [TIME, Temperature, Humidity, Rain]
-    Temperature = int(float(temperature_payload.replace("C","")))
-    print(Temperature)
-    Humidity = int(float(humidity_payload).replace("%",""))
-    print(Humidity)
-    Rain = int(float(rain_payload).replace("ml",""))
+    Temperature = int(float(temperature_payload))
+    Humidity = int(float(humidity_payload))
+    Rain = int(float(rain_payload))
 
-    data = [time() * 100, Temperature, Humidity,Rain]
+    data = [time()*1000, Temperature, Humidity,Rain]
 
     response = make_response(json.dumps(data))
 

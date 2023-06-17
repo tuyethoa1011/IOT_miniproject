@@ -7,7 +7,7 @@
 .copy-right {
   text-align: center;
   color: #aaa;
-  padding-bottom: 24px;
+  padding:10px;
   font-size: 13px;
 }
 
@@ -20,7 +20,6 @@
 .footer-container {
   display: flex;
   padding: 60px;
-  height: auto;
 }
 
 .footer-item {
