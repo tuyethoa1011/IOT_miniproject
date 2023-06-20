@@ -30,5 +30,4 @@ Hiển thị dữ liệu để người dùng xem
     - Web tự cập nhật dữ liệu mà không cần refresh (2.5đ) (DONE)
 Thiết kế website đẹp (Cộng 1đ Bonus)
 
-Điểm hiện tại: 13/14 (Tính cả hiển thị dạng số và hiển thị dạng đồ thị)
 
