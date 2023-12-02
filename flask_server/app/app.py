@@ -14,7 +14,7 @@ app = Flask (__name__)
 
 app.config['MQTT_BROKER_URL'] = 'mqtt.flespi.io'
 app.config['MQTT_BROKER_PORT'] = 1883
-app.config['MQTT_USERNAME'] = 'YERVPkXy4fbkQuav4MjCqa6FwE9bp0UesAX7KKtDPsNtKLPFnW7BU16et6gJUYLc'
+app.config['MQTT_USERNAME'] = 'L6cuIYqQjTyE5hCyaR9zqRe2Efy7FpNejPwPDMtKwPfpXFNXmKkArmrWqPRT2uX9'
 app.config['MQTT_PASSWORD'] = ''
 app.config['MQTT_REFRESH_TIME'] = 1.0 # refresh time in seconds
 app.config['MQTT_KEEPALIVE'] = 5
@@ -42,24 +42,29 @@ def handle_connect(client, userdata, flags, rc):
 #rc (return code) is used for checking that the connection was established. (see below).
 
 #Note: It is also common to subscribe in the on_connect callback
-client = MongoClient("mongodb://localhost:27017")
+client = MongoClient("mongodb+srv://cyberhoa:Hoahoa10112002@cluster0.gqvevvp.mongodb.net/")
 
 db = client.sensors_db #select the database
 todos = db.sensors #select collectionname
 
 #Dict object
-humidity_payload =  str(list(todos.find({"topic": topic_1}).sort([('timestamp', -1)]).limit(1))).split(',') #dữ liệu khởi tạo nên là dữ liệu cuối cùng được nhận trong database
-humidity_payload = humidity_payload[2].split(":")
-humidity_payload = humidity_payload [1].replace("'","")
+#humidity_payload =  str(list(todos.find({"topic": topic_1}).sort([('timestamp', -1)]).limit(1))).split(',') #dữ liệu khởi tạo nên là dữ liệu cuối cùng được nhận trong database
+#humidity_payload = humidity_payload[2].split(":")
+#humidity_payload = humidity_payload [1].replace("'","")
 
+humidity_payload = 0
 
-temperature_payload = str(list(todos.find({"topic": topic_2}).sort([('timestamp', -1)]).limit(1))).split(',')
-temperature_payload = temperature_payload[2].split(":")
-temperature_payload = temperature_payload[1].replace("'","")
+#temperature_payload = str(list(todos.find({"topic": topic_2}).sort([('timestamp', -1)]).limit(1))).split(',')
+#temperature_payload = temperature_payload[2].split(":")
+#temperature_payload = temperature_payload[1].replace("'","")
 
-rain_payload = str(list(todos.find({"topic": topic_3}).sort([('timestamp', -1)]).limit(1))).split(',')
-rain_payload = rain_payload[2].split(":")
-rain_payload = rain_payload[1].replace("'","")
+temperature_payload = 0
+
+#rain_payload = str(list(todos.find({"topic": topic_3}).sort([('timestamp', -1)]).limit(1))).split(',')
+#rain_payload = rain_payload[2].split(":")
+#rain_payload = rain_payload[1].replace("'","")
+
+rain_payload = 0
 #Lấy dữ liệu cuối cùng trong database push lên web khi vừa khởi động flask server
 
 @mqtt_client.on_message() #xử lý sự kiện khi nhận được dữ liệu từ broker
@@ -122,7 +127,7 @@ def update_rain():
 
 
 if __name__ == '__main__':
-    app.run(host="192.168.1.73", port=5000, debug=True, threaded=False)
+    app.run(host="192.168.1.197", port=5000, debug=True, threaded=False)
     #socketio.run(app, host=local_ip, port=5000, use_reloader=False, debug=False)
 
 
