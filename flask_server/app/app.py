@@ -42,7 +42,7 @@ def handle_connect(client, userdata, flags, rc):
 #rc (return code) is used for checking that the connection was established. (see below).
 
 #Note: It is also common to subscribe in the on_connect callback
-client = MongoClient("mongodb+srv://cyberhoa:Hoahoa10112002@cluster0.gqvevvp.mongodb.net/")
+client = MongoClient("")
 
 db = client.sensors_db #select the database
 todos = db.sensors #select collectionname
