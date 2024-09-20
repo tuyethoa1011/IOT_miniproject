@@ -2,8 +2,6 @@
 
 Hệ thống IOT được hiện thực với các chức năng sau:
 
-Thiết kế một hệ thống IoT thực hiện các chức năng sau:
-
 - NODE ESP32:
 
   - Lấy các dữ liệu nhiệt độ, độ ẩm, lượng mưa từ các cảm biến (1.5đ) (DONE)
@@ -24,7 +22,7 @@ Hiển thị dữ liệu để người dùng xem
     - Người dùng tự bấm refresh để xem dữ liệu mới (1đ) 
     - Web tự refresh khi có dữ liệu mới (1.5đ) 
     - Web tự cập nhật dữ liệu mà không cần refresh (2đ) (DONE)
-  - Hiển thị dạng đồ thị
+  - Hiển thị dạng đồ thị (DONE)
     - Người dụng tự bấm refresh để xem dữ liệu mới (1.5đ)
     - Web tự refresh khi có dữ liệu mới (2đ)
     - Web tự cập nhật dữ liệu mà không cần refresh (2.5đ) (DONE)
